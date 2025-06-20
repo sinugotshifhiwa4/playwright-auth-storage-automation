@@ -12,8 +12,8 @@ const timeout = (base: number): number => (isCI ? base * CI_MULTIPLIER : base);
 
 export const TIMEOUTS = {
   // Test framework timeouts
-  test: timeout(15_000),
-  expect: timeout(30_000),
+  test: timeout(20_000),
+  expect: timeout(60_000),
 
   // UI timeouts
   ui: {

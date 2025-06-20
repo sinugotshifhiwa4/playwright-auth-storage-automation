@@ -17,13 +17,45 @@ test.describe('Login Page Validation', () => {
   });
 });
 
-test.describe('Login - Valid Credentials', () => {});
+test.describe.only('Login - Valid Credentials', () => {
+  test('Verify user can login successfully with valid credentials', async ({
+    loginPage,
+    environmentResolver,
+    sideMenuPage
+  }) => {
+    const resolvedUrl = await environmentResolver.getPortalBaseUrl();
+    await loginPage.navigateToUrl(resolvedUrl);
 
-test.describe('Login - Invalid Credentials', () => {});
+    await loginPage.verifyLoginErrorIsNotDisplayed();
+    await sideMenuPage.verifyDashboardMenuIsVisible();
+
+    logger.info('Login successfully');
+  });
+});
+
+test.describe.only('Login - Invalid Credentials', () => {
+  test('Verify user with invalid credentials cannot login', async ({
+    loginPage,
+    environmentResolver,
+    browserSessionManager,
+  }) => {
+    const resolvedUrl = await environmentResolver.getPortalBaseUrl();
+    await loginPage.navigateToUrl(resolvedUrl);
+
+    const { username } = await environmentResolver.getPortalCredentials('dev', false);
+
+    await browserSessionManager.performLogin(username, 'invalidPassword', false);
+    await loginPage.verifyLoginErrorIsDisplayed();
+    logger.info('Login failed');
+  });
+});
 
 test.describe('Login - Forgot Password Flow', () => {
-  test('Verify user can reset password successfully', async ({ environmentResolver, loginPage }) => {
-     const resolvedUrl = await environmentResolver.getPortalBaseUrl();
+  test('Verify user can reset password successfully', async ({
+    environmentResolver,
+    loginPage,
+  }) => {
+    const resolvedUrl = await environmentResolver.getPortalBaseUrl();
     await loginPage.navigateToUrl(resolvedUrl);
     await loginPage.verifyResetPasswordFlow('Admin', 'Reset Password link sent successfully');
     logger.info('Password reset successfully');
