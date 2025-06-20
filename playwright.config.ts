@@ -9,7 +9,7 @@ const isCI = EnvironmentDetector.isCI();
 type chartType = 'doughnut' | 'pie';
 
 const reportConfig: OrtoniReportConfig = {
-  open: process.env.CI ? 'never' : 'on-failure',
+  open: process.env.CI ? 'never' : 'always',
   folderPath: 'ortoni-report',
   filename: 'index.html',
   logo: '',
@@ -24,11 +24,11 @@ const reportConfig: OrtoniReportConfig = {
   chartType: 'doughnut' as chartType,
   meta: {
     project: 'Playwright-Auth-Storage-Automation',
-    version: '3.0.0',
-    description: 'Playwright test report',
-    testCycle: '1',
-    release: '1.0.0',
-    platform: 'Windows',
+    description: 'Playwright authentication storage state configuration',
+    testCycle: process.env.TEST_CYCLE || '1',
+    platform: process.env.TEST_PLATFORM || 'Windows',
+    environment: process.env.ENV || 'dev',
+    version: process.env.APP_VERSION || '1.0.0',
   },
 };
 
@@ -76,7 +76,8 @@ export default defineConfig({
     /* Base URL to use in actions like `await page.goto('/')`. */
     // baseURL: 'http://localhost:3000',
 
-    // custom options 
+    // custom options
+    headless: isCI ? true : false,
     trace: isCI ? 'retain-on-failure' : 'off',
     screenshot: isCI ? 'only-on-failure' : 'on',
     video: 'retain-on-failure',
