@@ -8,7 +8,7 @@ node_modules/
 /logs/
 /downloads/
 /ortoni-report/
-/ap_template/
+/.auth/
 /.keyMetadata/
 package-lock.json
 results.trx

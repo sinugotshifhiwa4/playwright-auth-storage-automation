@@ -1,4 +1,4 @@
-import { test as cryptoBaseTest } from '@playwright/test';
+import { test as baseTest } from '@playwright/test';
 import { KeyMetadataRepository } from '../src/cryptography/key/keyMetadataRepository';
 import { EnvironmentSecretFileManager } from '../src/cryptography/manager/environmentSecretFileManager';
 import { KeyLifecycleManager } from '../src/cryptography/manager/keyLifecycleManager';
@@ -19,7 +19,7 @@ type customFixtures = {
   cryptoOrchestrator: CryptoOrchestrator;
 };
 
-export const cryptoFixtures = cryptoBaseTest.extend<customFixtures>({
+export const cryptoFixtures = baseTest.extend<customFixtures>({
   environmentSecretFileManager: async ({}, use) => {
     await use(new EnvironmentSecretFileManager());
   },
@@ -65,4 +65,4 @@ export const cryptoFixtures = cryptoBaseTest.extend<customFixtures>({
 });
 
 export const test = cryptoFixtures;
-export const expect = cryptoBaseTest.expect;
+export const expect = baseTest.expect;
