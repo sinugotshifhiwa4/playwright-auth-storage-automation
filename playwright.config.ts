@@ -1,0 +1,129 @@
+import { defineConfig, devices } from '@playwright/test';
+import { OrtoniReportConfig } from 'ortoni-report';
+import EnvironmentDetector from './src/config/environment/detector/detector';
+import { TIMEOUTS } from './src/config/timeouts/timeout.config';
+
+const isCI = EnvironmentDetector.isCI();
+
+// ortoni-report types
+type chartType = 'doughnut' | 'pie';
+
+const reportConfig: OrtoniReportConfig = {
+  open: process.env.CI ? 'never' : 'on-failure',
+  folderPath: 'ortoni-report',
+  filename: 'index.html',
+  logo: '',
+  title: 'Ortoni Test Report',
+  showProject: !true,
+  projectName: 'Playwright-Auth-Storage-Automation',
+  testType: 'e2e',
+  authorName: 'Tshifhiwa Sinugo',
+  base64Image: false,
+  stdIO: false,
+  preferredTheme: 'dark',
+  chartType: 'doughnut' as chartType,
+  meta: {
+    project: 'Playwright-Auth-Storage-Automation',
+    version: '3.0.0',
+    description: 'Playwright test report',
+    testCycle: '1',
+    release: '1.0.0',
+    platform: 'Windows',
+  },
+};
+
+/**
+ * Read environment variables from file.
+ * https://github.com/motdotla/dotenv
+ */
+// import dotenv from 'dotenv';
+// import path from 'path';
+// dotenv.config({ path: path.resolve(__dirname, '.env') });
+
+/**
+ * See https://playwright.dev/docs/test-configuration.
+ */
+export default defineConfig({
+  timeout: TIMEOUTS.test,
+  expect: {
+    timeout: TIMEOUTS.expect,
+  },
+  testDir: './tests',
+  globalSetup: './src/config/environment/global/globalEnvironmentSetup.ts',
+  /* Run tests in files in parallel */
+  fullyParallel: true,
+  /* Fail the build on CI if you accidentally left test.only in the source code. */
+  forbidOnly: !!process.env.CI,
+  /* Retry on CI only */
+  retries: process.env.CI ? 2 : 0,
+  /* Opt out of parallel tests on CI. */
+  workers: process.env.CI ? undefined : 2, // local written number that your machine can support/handle/ without hanging
+  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
+  reporter: isCI
+    ? [['junit', { outputFile: 'results.xml' }], ['dot']]
+    : [
+        ['html', { open: 'never' }],
+        ['junit', { outputFile: 'results.xml' }],
+        ['ortoni-report', reportConfig],
+        ['dot'],
+      ],
+  grep:
+    typeof process.env.PLAYWRIGHT_GREP === 'string'
+      ? new RegExp(process.env.PLAYWRIGHT_GREP)
+      : process.env.PLAYWRIGHT_GREP || /.*/,
+  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+  use: {
+    /* Base URL to use in actions like `await page.goto('/')`. */
+    // baseURL: 'http://localhost:3000',
+
+    // custom options 
+    trace: isCI ? 'retain-on-failure' : 'off',
+    screenshot: isCI ? 'only-on-failure' : 'on',
+    video: 'retain-on-failure',
+  },
+
+  /* Configure projects for major browsers */
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+    },
+
+    /* Test against mobile viewports. */
+    // {
+    //   name: 'Mobile Chrome',
+    //   use: { ...devices['Pixel 5'] },
+    // },
+    // {
+    //   name: 'Mobile Safari',
+    //   use: { ...devices['iPhone 12'] },
+    // },
+
+    /* Test against branded browsers. */
+    // {
+    //   name: 'Microsoft Edge',
+    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
+    // },
+    // {
+    //   name: 'Google Chrome',
+    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
+    // },
+  ],
+
+  /* Run your local dev server before starting the tests */
+  // webServer: {
+  //   command: 'npm run start',
+  //   url: 'http://localhost:3000',
+  //   reuseExistingServer: !process.env.CI,
+  // },
+});
