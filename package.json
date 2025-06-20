@@ -1,0 +1,70 @@
+{
+  "name": "playwright-auth-storage-automation",
+  "version": "1.0.0",
+  "description": "Automates login flows and securely manages authenticated browser state in Playwright. Enables fast, reliable test execution by persisting login sessions across test suites",
+  "keywords": [
+    "playwright",
+    "typescript",
+    "dotenv",
+    "cross-env",
+    "argon2",
+    "winston",
+    "logging",
+    "reporting",
+    "ortoni-report",
+    "eslint",
+    "prettier"
+  ],
+  "homepage": "https://github.com/sinugotshifhiwa4/playwright-auth-storage-automation#readme",
+  "bugs": {
+    "url": "https://github.com/sinugotshifhiwa4/playwright-auth-storage-automation/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sinugotshifhiwa4/playwright-auth-storage-automation.git"
+  },
+  "license": "ISC",
+  "author": "Tshifhiwa Sinugo",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "type:check": "tsc --noEmit",
+    "lint": "eslint . --ext .ts,.js",
+    "lint:fix": "eslint . --ext .ts,.js --fix",
+    "pre-check": "npm run type:check && npm run lint",
+    "pretest:encryption:dev": "npm run pre-check",
+    "pretest:encryption:uat": "npm run pre-check",
+    "pretest:failed:dev": "npm run pre-check",
+    "pretest:failed:uat": "npm run pre-check",
+    "test:encryption:dev": "cross-env ENV=dev SKIP_BROWSER_INIT=true npx playwright test tests/encryption",
+    "test:encryption:uat": "cross-env ENV=uat SKIP_BROWSER_INIT=true npx playwright test tests/encryption",
+    "test:failed:dev": "cross-env ENV=dev npx playwright test --last-failed",
+    "test:failed:uat": "cross-env ENV=uat npx playwright test --last-failed",
+    "ui": "npx playwright test --ui",
+    "record": "npx playwright codegen",
+    "report": "npx playwright show-report",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "@faker-js/faker": "^9.8.0",
+    "argon2": "^0.43.0",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.5.0",
+    "moment-timezone": "^0.6.0",
+    "playwright": "^1.53.1",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.34.1",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.53.1",
+    "@types/node": "^24.0.3",
+    "cspell": "9.1.1",
+    "eslint": "9.29.0",
+    "eslint-config-prettier": "10.1.5",
+    "eslint-plugin-prettier": "5.5.0",
+    "ortoni-report": "3.0.2",
+    "prettier": "3.5.3"
+  }
+}
