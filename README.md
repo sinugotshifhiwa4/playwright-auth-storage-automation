@@ -2,15 +2,30 @@
 
 ## Overview
 
-This repository streamlines **authenticated end-to-end testing** using **Playwright** and **TypeScript** by managing browser storage state. It enables one-time login automation and **reuses the authenticated session across all test suites**.
+This repository simplifies **authenticated end-to-end testing** in **Playwright** using persistent browser storage state. It automates login flows once and reuses the authenticated session across all test suites.
 
 By persisting authentication state, the setup:
 
-* 🚀 Reduces test execution time
-* 🔒 Improves reliability of secure routes
-* 🔁 Eliminates redundant login steps
+* 🚀 **Reduces test execution time**
+* 🔒 **Improves reliability of secure routes**
+* 🔁 **Eliminates redundant login steps**
 
 Ideal for projects requiring **consistent, secure, and scalable** test automation.
+
+---
+
+## Table of Contents
+
+* [Getting Started](#getting-started)
+* [Environment Setup](#environment-setup)
+* [Encryption Workflows](#encryption-workflows)
+* [Authentication State Configuration](#authentication-state-configuration)
+* [Running Tests](#running-tests)
+* [Running Tests by Tag](#running-tests-by-tag)
+* [Command Line Utilities](#command-line-utilities)
+* [Best Practices](#best-practices)
+* [Contributing](#contributing)
+* [Further Reading](#further-reading)
 
 ---
 
@@ -51,13 +66,13 @@ Sensitive environment data is encrypted using **AES-GCM** and secured with **Arg
 
 ### Encryption Commands
 
-#### 1. Generate Secret Key
+#### 🔑 1. Generate Secret Key
 
 ```bash
 npx cross-env PLAYWRIGHT_GREP="@generate-key" npm run test:encryption:dev
 ```
 
-#### 2. Encrypt Credentials
+#### 🔐 2. Encrypt Credentials
 
 ```bash
 npx cross-env PLAYWRIGHT_GREP="@encrypt-vars" npm run test:encryption:dev
@@ -74,35 +89,34 @@ const { username, password } = await environmentResolver.getPortalCredentials('d
 
 ## Authentication State Configuration
 
-Playwright's **storage state** is used to persist authentication across sessions, avoiding repeated logins.
+Playwright’s **storage state** persists login sessions between test runs, avoiding repeated authentication.
 
 ### How It Works
 
 1. **Setup Phase (`*.setup.ts`)**
 
-   * Performs login using valid credentials
-   * Saves session to a storage file
-   * Runs **once** before other tests
+   * Logs in with valid credentials
+   * Saves session to a local file
+   * Runs once before other tests
 
 2. **Test Execution Phase**
 
-   * Tests in the main project (e.g., `chromium`) reuse the saved session
-   * Auth is **automatically skipped** for tests that don't need it (e.g., login page)
-   * When running all tests (e.g., sanity or full suite), auth setup runs first, and tests that need auth use the session; those that don’t simply ignore it
+   * Test project (e.g., `chromium`) reuses saved session
+   * Auth is **selectively applied**—tests like login/logout run without stored session
 
 ✅ **Summary**:
-Authentication runs once before the test suite. Tests that require auth will use the stored session, while those that don’t (e.g., login/logout tests) will skip it automatically. This makes the setup seamless when running full suites like `@sanity`.
+Authentication runs once before the suite. Authenticated tests use the stored session; others skip it. This makes full suite runs (e.g., `@sanity`) seamless.
 
 ---
 
 ### Key Components
 
-| Component               | Purpose                                                               |
-| ----------------------- | --------------------------------------------------------------------- |
-| `BrowserSessionManager` | Automates login and saves the session state                           |
-| `AuthStorageManager`    | Resolves the storage state file path                                  |
-| `AuthenticationFilter`  | Determines whether a test should use or skip authentication           |
-| `environmentResolver`   | Dynamically resolves credentials and base URLs from env configuration |
+| **Component**           | **Purpose**                                                             |
+| ----------------------- | ----------------------------------------------------------------------- |
+| `BrowserSessionManager` | Automates login and saves session state                                 |
+| `AuthStorageManager`    | Resolves path for saving/loading the session file                       |
+| `AuthenticationFilter`  | Determines whether a test should apply authentication                   |
+| `environmentResolver`   | Dynamically resolves credentials and base URLs from environment configs |
 
 ---
 
@@ -138,86 +152,102 @@ const context = await browser.newContext({ storageState });
 AuthStorageManager.resolveAuthStateFilePath();
 ```
 
-This path determines where the session is saved and reloaded.
+This determines where session data is saved and loaded from across test runs.
 
 ---
 
 ### Playwright Project Configuration
+
+Split test execution into two projects for setup and test reuse:
 
 ```ts
 projects: [
   {
     name: 'setup',
     testMatch: /.*\.setup\.ts/,
-    use: { storageState: undefined }
+    use: { storageState: undefined },
   },
   {
     name: 'chromium',
     use: { storageState: storageStatePath },
-    dependencies: ['setup']
-  }
-]
+    dependencies: ['setup'],
+  },
+];
 ```
 
-* `setup` — Runs before main tests to prepare the auth state
-* `chromium` — Runs tests using the pre-authenticated session
+* `setup`: Runs first to generate and save authenticated session
+* `chromium`: Executes tests using the saved session
 
-You can bypass the auth phase entirely by setting `shouldSkipBrowserInit` to `true`—useful for non-UI or API-only scenarios.
+To skip browser-based login (e.g., for API-only tests), set `shouldSkipBrowserInit` to `true`.
 
 ---
 
-## Advanced Encryption Commands
+## Running Tests
 
-Tagged test executions allow flexible encryption handling:
+Use the following commands to run tests in various environments:
+
+| **Command**               | **Description**                             |
+| ------------------------- | ------------------------------------------- |
+| `npm run test:ui:dev`     | Run UI tests in the `dev` environment       |
+| `npm run test:failed:dev` | Re-run failed tests from previous `dev` run |
+
+> 💡 Replace `dev` with `uat`, `prod`, or any supported environment.
+
+**Example:**
+
+```bash
+npm run test:api:uat
+```
+
+---
+
+## Running Tests by Tag
+
+Run specific encryption tasks by tag:
 
 ```bash
 npx cross-env PLAYWRIGHT_GREP="@<tag>" npm run test:encryption:<env>
 ```
 
-Replace `<tag>` with the desired operation, and `<env>` with `dev`, `uat`, etc.
-
-| Tag                  | Action                                   |
+| **Tag**              | **Action**                               |
 | -------------------- | ---------------------------------------- |
 | `@generate-key`      | Generate a new encryption key            |
 | `@encrypt-vars`      | Encrypt environment variables            |
 | `@verify-encryption` | Validate encrypted values                |
 | `@rotate-key`        | Rotate the key and re-encrypt all values |
 | `@rotation-status`   | Check current encryption key status      |
-| `@system-audit`      | Run an audit to ensure secure setup      |
-| `@key-info`          | Retrieve metadata about encryption keys  |
+| `@system-audit`      | Run a system-wide security audit         |
+| `@key-info`          | Retrieve encryption key metadata         |
 
 ---
 
 ## Command Line Utilities
 
-| Command                   | Description                              |
-| ------------------------- | ---------------------------------------- |
-| `npm run ui`              | Launch Playwright Test Runner UI         |
-| `npm run record`          | Start Playwright code generator          |
-| `npm run report`          | View HTML test report                    |
-| `npm run format`          | Format code with Prettier                |
-| `npm run format:check`    | Check formatting only                    |
-| `npm run type:check`      | Run TypeScript checks                    |
-| `npm run lint`            | Lint source files                        |
-| `npm run lint:fix`        | Auto-fix lint issues                     |
-| `npm run spell`           | Spellcheck markdown and source           |
-| `npm run test:failed:dev` | Re-run failed tests in `dev` environment |
-| `npm run test:failed:uat` | Re-run failed tests in `uat` environment |
+| **Command**            | **Description**                  |
+| ---------------------- | -------------------------------- |
+| `npm run ui`           | Launch Playwright Test Runner UI |
+| `npm run record`       | Start Playwright code generator  |
+| `npm run report`       | Open latest HTML test report     |
+| `npm run format`       | Format code using Prettier       |
+| `npm run format:check` | Check formatting without writing |
+| `npm run type:check`   | Run TypeScript type checks       |
+| `npm run lint`         | Lint source files                |
+| `npm run lint:fix`     | Auto-fix lint issues             |
 
 ---
 
 ## Best Practices
 
-✅ Do:
+✅ **Do this:**
 
 * Reuse authentication to speed up tests
 * Rotate encryption keys after credential changes
 * Run `npm install` after switching branches
 
-🚫 Don’t:
+🚫 **Avoid this:**
 
-* ❌ Commit `.env` or decrypted secrets
-* ❌ Skip encryption in production/test environments
+* ❌ Committing `.env` or decrypted secrets
+* ❌ Disabling encryption in production/test environments
 
 ---
 
