@@ -67,12 +67,15 @@ export class EnvironmentResolver {
 
   public async getAdminCredentials(
     environmentForSecretKeyVariable: EnvironmentStage,
-      shouldDecrypt: boolean = true,
+    shouldDecrypt: boolean = true,
   ): Promise<Credentials> {
     return EnvironmentUtils.getEnvironmentValue(
       () => this.fetchCIEnvironmentVariables.getAdminCredentials(),
       () =>
-        this.FetchLocalEnvironmentVariables.getAdminCredentials(environmentForSecretKeyVariable, shouldDecrypt),
+        this.FetchLocalEnvironmentVariables.getAdminCredentials(
+          environmentForSecretKeyVariable,
+          shouldDecrypt,
+        ),
       'getAdminCredentials',
       'Failed to get admin credentials',
     );
@@ -80,12 +83,15 @@ export class EnvironmentResolver {
 
   public async getPortalCredentials(
     environmentForSecretKeyVariable: EnvironmentStage,
-      shouldDecrypt: boolean = true,
+    shouldDecrypt: boolean = true,
   ): Promise<Credentials> {
     return EnvironmentUtils.getEnvironmentValue(
       () => this.fetchCIEnvironmentVariables.getPortalCredentials(),
       () =>
-        this.FetchLocalEnvironmentVariables.getPortalCredentials(environmentForSecretKeyVariable, shouldDecrypt),
+        this.FetchLocalEnvironmentVariables.getPortalCredentials(
+          environmentForSecretKeyVariable,
+          shouldDecrypt,
+        ),
       'getPortalCredentials',
       'Failed to get portal credentials',
     );
@@ -95,12 +101,15 @@ export class EnvironmentResolver {
 
   public async getDatabaseCredentials(
     environmentForSecretKeyVariable: EnvironmentStage,
-      shouldDecrypt: boolean = true,
+    shouldDecrypt: boolean = true,
   ): Promise<Credentials> {
     return EnvironmentUtils.getEnvironmentValue(
       () => this.fetchCIEnvironmentVariables.getDatabaseCredentials(),
       () =>
-        this.FetchLocalEnvironmentVariables.getDatabaseCredentials(environmentForSecretKeyVariable, shouldDecrypt),
+        this.FetchLocalEnvironmentVariables.getDatabaseCredentials(
+          environmentForSecretKeyVariable,
+          shouldDecrypt,
+        ),
       'getDatabaseCredentials',
       'Failed to get database credentials',
     );

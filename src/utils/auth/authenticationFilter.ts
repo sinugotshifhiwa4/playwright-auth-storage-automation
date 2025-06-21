@@ -10,7 +10,7 @@ export default class AuthenticationFilter {
    * @param additionalSkipConditions - Additional test title patterns that should skip auth
    * @returns boolean - true if auth setup should be skipped
    */
-   public static shouldSkipAuthSetup(
+  public static shouldSkipAuthSetup(
     testInfo: TestInfo,
     additionalSkipConditions: string[] = [],
   ): boolean {
@@ -21,9 +21,9 @@ export default class AuthenticationFilter {
       const skipAuth =
         testInfo.annotations.find((a) => a.type === 'skipAuth')?.description === 'true';
 
-        // Check if the test title contains any of the skip conditions
+      // Check if the test title contains any of the skip conditions
       const titleContainsSkipCondition = allSkipConditions.some((condition) =>
-        testInfo.title.toLowerCase().includes(condition.toLowerCase())
+        testInfo.title.toLowerCase().includes(condition.toLowerCase()),
       );
 
       return skipAuth || titleContainsSkipCondition;

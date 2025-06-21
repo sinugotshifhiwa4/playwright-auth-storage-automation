@@ -11,11 +11,11 @@ import logger from '../../src/utils/logging/loggerManager';
  */
 authSession(
   `Authenticate @sanity @regression`,
-  async ({ browserSessionManager, environmentResolver, sideMenuPage }) => {
+  async ({ browserSessionManager, environmentResolver, sideNavigationMenu }) => {
     const { username, password } = await environmentResolver.getPortalCredentials('dev', false);
 
     await browserSessionManager.performLogin(username, password, true);
-    await sideMenuPage.verifyDashboardMenuIsVisible();
+    await sideNavigationMenu.verifyDashboardMenuIsVisible();
 
     logger.info('Authentication session state setup completed and saved successfully.');
   },
