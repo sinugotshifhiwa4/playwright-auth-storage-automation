@@ -2,13 +2,16 @@ import { test } from '../../fixtures/orangehrm.fixtures';
 import logger from '../../src/utils/logging/loggerManager';
 
 test.describe('Login Page Validation', () => {
+  test.beforeEach(async ({ environmentResolver, loginPage }) => {
+    const resolvedUrl = await environmentResolver.getPortalBaseUrl();
+    await loginPage.navigateToUrl(resolvedUrl);
+  });
+
   test('Verify navigation to login page and verify URL and title', async ({
     loginPage,
     environmentResolver,
   }) => {
     const resolvedUrl = await environmentResolver.getPortalBaseUrl();
-
-    await loginPage.navigateToUrl(resolvedUrl);
 
     await loginPage.verifyPageUrl(resolvedUrl, { exact: true });
     await loginPage.verifyPageTitle('OrangeHRM', { exact: true });
@@ -17,31 +20,27 @@ test.describe('Login Page Validation', () => {
   });
 });
 
-test.describe.only('Login - Valid Credentials', () => {
-  test('Verify user can login successfully with valid credentials', async ({
-    loginPage,
-    environmentResolver,
-    sideMenuPage
-  }) => {
+test.describe('Login - Login Flow @regression', () => {
+  test.beforeEach(async ({ environmentResolver, loginPage }) => {
     const resolvedUrl = await environmentResolver.getPortalBaseUrl();
     await loginPage.navigateToUrl(resolvedUrl);
-
-    await loginPage.verifyLoginErrorIsNotDisplayed();
-    await sideMenuPage.verifyDashboardMenuIsVisible();
-
-    logger.info('Login successfully');
   });
-});
 
-test.describe.only('Login - Invalid Credentials', () => {
-  test('Verify user with invalid credentials cannot login', async ({
+  test('Verify user can login successfully with valid credentials @sanity', async ({
+    loginPage,
+    sideNavigationMenu,
+  }) => {
+    await loginPage.verifyLoginErrorIsNotDisplayed();
+    await sideNavigationMenu.verifyDashboardMenuIsVisible();
+
+    logger.info('Login successful');
+  });
+
+  test('Verify user with invalid credentials cannot login @sanity', async ({
     loginPage,
     environmentResolver,
     browserSessionManager,
   }) => {
-    const resolvedUrl = await environmentResolver.getPortalBaseUrl();
-    await loginPage.navigateToUrl(resolvedUrl);
-
     const { username } = await environmentResolver.getPortalCredentials('dev', false);
 
     await browserSessionManager.performLogin(username, 'invalidPassword', false);
@@ -51,15 +50,29 @@ test.describe.only('Login - Invalid Credentials', () => {
 });
 
 test.describe('Login - Forgot Password Flow', () => {
-  test('Verify user can reset password successfully', async ({
-    environmentResolver,
-    loginPage,
-  }) => {
+  test.beforeEach(async ({ environmentResolver, loginPage }) => {
     const resolvedUrl = await environmentResolver.getPortalBaseUrl();
     await loginPage.navigateToUrl(resolvedUrl);
+  });
+
+  test('Verify user can reset password successfully', async ({ loginPage }) => {
     await loginPage.verifyResetPasswordFlow('Admin', 'Reset Password link sent successfully');
-    logger.info('Password reset successfully');
+    logger.info('Password reset successful');
   });
 });
 
-test.describe('Login - Footer Elements', () => {});
+test.describe('Login - Footer Elements', () => {
+  test.beforeEach(async ({ environmentResolver, loginPage }) => {
+    const resolvedUrl = await environmentResolver.getPortalBaseUrl();
+    await loginPage.navigateToUrl(resolvedUrl);
+  });
+
+  test('Verify login footer details', async ({ loginPage }) => {
+    await loginPage.verifyFooterDetails(
+      'OrangeHRM OS 5.7',
+      '© 2005 - 2025 OrangeHRM, Inc. All rights reserved.',
+      'http://www.orangehrm.com',
+    );
+    logger.info('Footer elements are visible');
+  });
+});

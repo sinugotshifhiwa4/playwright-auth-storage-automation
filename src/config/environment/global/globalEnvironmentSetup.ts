@@ -18,7 +18,6 @@
 
 // export default globalSetup;
 
-
 import EnvironmentConfigLoader from '../../../utils/environment/environmentConfigManager';
 import { EnvironmentSecretFileManager } from '../../../cryptography/manager/environmentSecretFileManager';
 import AuthStorageManager from '../../../utils/auth/storage/authStorageManager';

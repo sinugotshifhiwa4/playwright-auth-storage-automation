@@ -2,7 +2,7 @@ import { Locator, Page, expect } from '@playwright/test';
 import BasePage from '../base/basePage';
 import ErrorHandler from '../../utils/errors/errorHandler';
 
-export class TopMenuPage extends BasePage {
+export class TopNavigationMenu extends BasePage {
   readonly page: Page;
   private readonly defaultLandingPageHeader: Locator;
   private readonly upgradeButton: Locator;

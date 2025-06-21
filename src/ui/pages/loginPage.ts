@@ -18,9 +18,8 @@ export class LoginPage extends BasePage {
 
   // Footer
   private readonly footerVersionInfo: Locator;
-  private readonly footerCopyrightDate: Locator;
-  private readonly footerCompanyLink: Locator;
-  private readonly footerRightsReserved: Locator;
+  private readonly footerCopyrightDetails: Locator;
+  private readonly footerCompanyLinkText: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -42,9 +41,8 @@ export class LoginPage extends BasePage {
       level: 6,
     });
     this.footerVersionInfo = page.locator('p', { hasText: 'OrangeHRM OS 5.7' });
-    this.footerCopyrightDate = page.locator('p', { hasText: '© 2005 - 2025' });
-    this.footerCompanyLink = page.getByRole('link', { name: 'OrangeHRM, Inc' });
-    this.footerRightsReserved = page.locator('p', { hasText: 'All rights reserved.' });
+    this.footerCopyrightDetails = page.locator('p', { hasText: 'All rights reserved.' });
+    this.footerCompanyLinkText = page.getByRole('link', { name: 'OrangeHRM, Inc' });
   }
 
   public async fillUsernameInput(username: string): Promise<void> {
@@ -75,21 +73,18 @@ export class LoginPage extends BasePage {
     await this.clickElement(this.forgotPasswordLink, 'Forgot password link');
   }
 
-  public async verifyFooterIsDisplayed(
+  public async verifyFooterDetails(
     expectedFooterVersionInfo: string,
-    expectedFooterCopyrightDate: string,
-    expectedFooterCompanyLink: string,
-    expectedFooterRightsReserved: string,
+    expectedFooterDetails: string,
+    expectedFooterCompanyLinkHref: string,
   ): Promise<void> {
     const actualFooterVersionInfo = await this.getFooterVersionInfo();
-    const actualFooterCopyrightDate = await this.getFooterCopyrightDate();
-    const actualFooterCompanyLink = await this.getFooterCompanyLink();
-    const actualFooterRightsReserved = await this.getFooterRightsReserved();
+    const actualFooterCopyrightDate = await this.getFooterCopyrightDetails();
+    const actualFooterCompanyLinkHref = await this.getFooterCompanyLinkHref();
 
     expect(actualFooterVersionInfo).toBe(expectedFooterVersionInfo);
-    expect(actualFooterCopyrightDate).toBe(expectedFooterCopyrightDate);
-    expect(actualFooterCompanyLink).toBe(expectedFooterCompanyLink);
-    expect(actualFooterRightsReserved).toBe(expectedFooterRightsReserved);
+    expect(actualFooterCopyrightDate).toBe(expectedFooterDetails);
+    expect(actualFooterCompanyLinkHref).toBe(expectedFooterCompanyLinkHref);
   }
 
   private async getFooterVersionInfo(): Promise<string> {
@@ -103,37 +98,20 @@ export class LoginPage extends BasePage {
     return versionInfo;
   }
 
-  private async getFooterCopyrightDate(): Promise<string> {
+  private async getFooterCopyrightDetails(): Promise<string> {
     const copyrightDate = await this.getElementProperty<string>(
-      this.footerCopyrightDate,
+      this.footerCopyrightDetails,
       'textContent',
       undefined,
-      'Footer copyright date',
+      'Footer copyright details',
     );
 
     return copyrightDate;
   }
 
-  private async getFooterCompanyLink(): Promise<string> {
-    const companyLink = await this.getElementProperty<string>(
-      this.footerCompanyLink,
-      'textContent',
-      undefined,
-      'Footer company link',
-    );
-
-    return companyLink;
-  }
-
-  private async getFooterRightsReserved(): Promise<string> {
-    const rightsReserved = await this.getElementProperty<string>(
-      this.footerRightsReserved,
-      'textContent',
-      undefined,
-      'Footer rights reserved',
-    );
-
-    return rightsReserved;
+  private async getFooterCompanyLinkHref(): Promise<string> {
+    const href = await this.footerCompanyLinkText.getAttribute('href');
+    return href || '';
   }
 
   public async verifyResetPasswordContainerHeaderIsDisplayed(): Promise<void> {

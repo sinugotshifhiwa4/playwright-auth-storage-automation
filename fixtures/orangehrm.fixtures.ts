@@ -6,8 +6,8 @@ import { FetchCIEnvironmentVariables } from '../src/config/environment/resolver/
 import { FetchLocalEnvironmentVariables } from '../src/config/environment/resolver/fetch/fetchLocalEnvironmentVariables';
 import { EnvironmentResolver } from '../src/config/environment/resolver/environmentResolver';
 import { BrowserSessionManager } from '../src/utils/auth/state/browserSessionManager';
-import { TopMenuPage } from '../src/ui/pages/topMenuPage';
-import { SideMenuPage } from '../src/ui/pages/sideMenuPage';
+import { TopNavigationMenu } from '../src/ui/pages/topNavigationMenu';
+import { SideNavigationMenu } from '../src/ui/pages/sideNavigationMenu';
 import { LoginPage } from '../src/ui/pages/loginPage';
 import logger from '../src/utils/logging/loggerManager';
 
@@ -18,8 +18,8 @@ type customFixtures = {
   environmentResolver: EnvironmentResolver;
   loginPage: LoginPage;
   browserSessionManager: BrowserSessionManager;
-  topMenuPage: TopMenuPage;
-  sideMenuPage: SideMenuPage;
+  topNavigationMenu: TopNavigationMenu;
+  sideNavigationMenu: SideNavigationMenu;
 };
 
 export const orangeHrmFixtures = baseTest.extend<customFixtures>({
@@ -43,11 +43,11 @@ export const orangeHrmFixtures = baseTest.extend<customFixtures>({
   browserSessionManager: async ({ page, environmentResolver, loginPage }, use) => {
     await use(new BrowserSessionManager(page, environmentResolver, loginPage));
   },
-  topMenuPage: async ({ page }, use) => {
-    await use(new TopMenuPage(page));
+  topNavigationMenu: async ({ page }, use) => {
+    await use(new TopNavigationMenu(page));
   },
-  sideMenuPage: async ({ page }, use) => {
-    await use(new SideMenuPage(page));
+  sideNavigationMenu: async ({ page }, use) => {
+    await use(new SideNavigationMenu(page));
   },
 
   context: async ({ browser, shouldSaveAuthState }, use, testInfo) => {
@@ -55,8 +55,11 @@ export const orangeHrmFixtures = baseTest.extend<customFixtures>({
 
     // Use AuthenticationFilter to determine if auth should be skipped
     const shouldSkipAuth = AuthenticationFilter.shouldSkipAuthSetup(testInfo, [
+      'verify URL and title',
       'Invalid Credentials',
-      'invalid credentials',
+      'login footer details',
+      'reset password',
+      'forgot password',
     ]);
 
     if (shouldSaveAuthState && !shouldSkipAuth) {
@@ -67,7 +70,9 @@ export const orangeHrmFixtures = baseTest.extend<customFixtures>({
         storageState = storagePath;
         logger.info(`Using auth state from: ${storagePath}`);
       } else {
-        logger.warn(`Auth state file not found at: ${storagePath}`);
+        logger.warn(
+          `Auth state file not found at: ${storagePath}. Please run the authentication setup first.`,
+        );
         storageState = undefined;
       }
     } else {
