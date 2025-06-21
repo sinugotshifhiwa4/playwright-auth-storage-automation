@@ -18,7 +18,6 @@ export class CustomError extends Error {
    */
   private static getDefaultMessage(category: ErrorCategory): string {
     const messages: Partial<Record<ErrorCategory, string>> = {
-      [ErrorCategory.DATABASE]: 'Database operation failed',
       [ErrorCategory.NETWORK]: 'Network request failed',
       [ErrorCategory.AUTHENTICATION]: 'Authentication failed',
       [ErrorCategory.AUTHORIZATION]: 'Access denied',

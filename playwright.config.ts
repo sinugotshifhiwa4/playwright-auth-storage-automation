@@ -2,14 +2,20 @@ import { defineConfig, devices } from '@playwright/test';
 import { OrtoniReportConfig } from 'ortoni-report';
 import EnvironmentDetector from './src/config/environment/detector/detector';
 import { TIMEOUTS } from './src/config/timeouts/timeout.config';
+import BrowserInitFlag from './src/config/browserInitFlag';
+import { AuthStorageConstants } from './src/utils/auth/constants/authStorage.constants';
 
 const isCI = EnvironmentDetector.isCI();
+const shouldSkipBrowserInit = BrowserInitFlag.shouldSkipBrowserInit();
+const storageStatePath = EnvironmentDetector.isCI()
+  ? AuthStorageConstants.CI_AUTH_FILE
+  : AuthStorageConstants.LOCAL_AUTH_FILE;
 
 // ortoni-report types
 type chartType = 'doughnut' | 'pie';
 
 const reportConfig: OrtoniReportConfig = {
-  open: process.env.CI ? 'never' : 'on-failure',
+  open: process.env.CI ? 'never' : 'always',
   folderPath: 'ortoni-report',
   filename: 'index.html',
   logo: '',
@@ -24,11 +30,11 @@ const reportConfig: OrtoniReportConfig = {
   chartType: 'doughnut' as chartType,
   meta: {
     project: 'Playwright-Auth-Storage-Automation',
-    version: '3.0.0',
-    description: 'Playwright test report',
-    testCycle: '1',
-    release: '1.0.0',
-    platform: 'Windows',
+    description: 'Playwright authentication storage state configuration',
+    testCycle: process.env.TEST_CYCLE || '1',
+    platform: process.env.TEST_PLATFORM || 'Windows',
+    environment: process.env.ENV || 'dev',
+    version: process.env.APP_VERSION || '1.0.0',
   },
 };
 
@@ -76,7 +82,8 @@ export default defineConfig({
     /* Base URL to use in actions like `await page.goto('/')`. */
     // baseURL: 'http://localhost:3000',
 
-    // custom options 
+    // custom options
+    headless: isCI ? true : false,
     trace: isCI ? 'retain-on-failure' : 'off',
     screenshot: isCI ? 'only-on-failure' : 'on',
     video: 'retain-on-failure',
@@ -84,20 +91,66 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
+    /*
+     * Project configuration with conditional browser setup:
+     *
+     * 1. When shouldSkipBrowserInit is FALSE (normal mode):
+     *    - We include the "setup" project that handles browser initialization
+     *    - The "setup" project runs tests matching the *.setup.ts pattern
+     *    - The "chromium" project depends on "setup" to ensure proper sequencing
+     *    - This ensures authentication is properly established before tests run
+     *
+     * 2. When shouldSkipBrowserInit is TRUE (performance optimization):
+     *    - We completely skip the "setup" project (empty array is spread)
+     *    - The "chromium" project has no dependencies (empty dependencies array)
+     *    - This optimization is useful for operations that don't need browser context
+     *      like crypto or database-only operations
+     *
+     * In both cases, the "chromium" project uses the authentication state from
+     * the file path specified in authStorageFilePath.
+     */
+    ...(!shouldSkipBrowserInit
+      ? [
+          {
+            name: 'setup',
+            use: { ...devices['Desktop Chrome'] },
+            testMatch: /.*\.setup\.ts/,
+          },
+        ]
+      : []),
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: storageStatePath,
+      },
+      dependencies: shouldSkipBrowserInit ? [] : ['setup'],
     },
+    // {
+    //   name: 'firefox',
+    //   use: { ...devices['Desktop Firefox'], storageState: authStorageFilePath },
+    //   dependencies: shouldSkipBrowserInit ? [] : ['setup'],
+    // },
+    // {
+    //   name: 'webkit',
+    //   use: { ...devices['Desktop Safari'], storageState: authStorageFilePath },
+    //   dependencies: shouldSkipBrowserInit ? [] : ['setup'],
+    // },
 
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
+    // {
+    //   name: 'chromium',
+    //   use: { ...devices['Desktop Chrome'] },
+    // },
 
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
+    // {
+    //   name: 'firefox',
+    //   use: { ...devices['Desktop Firefox'] },
+    // },
+
+    // {
+    //   name: 'webkit',
+    //   use: { ...devices['Desktop Safari'] },
+    // },
 
     /* Test against mobile viewports. */
     // {
